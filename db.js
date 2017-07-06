@@ -30,12 +30,15 @@ const db = {
                     if(err)
                     {
                         res.type('text/html');
-                        res.send('could not insert =/');
+                        res.send('<html><body><h1>could not register =/ <a href="http://localhost:3000/signin">'
+                              +'Back to login</a></h1></body></html>');
                     }
                     else
                     {
+                        res.cookie('uname', req.body.reg_username);
                         res.type('text/html');
-                        res.send('username has been inserted!');
+                        res.send('<h1>You have registered Succesfully as ' + req.body.reg_username +
+                            '<br><a href="http://localhost:3000/index">Click here to continue</a> ');
                     }
                   });
             }
@@ -43,7 +46,8 @@ const db = {
              {
                console.log('query resp2: ' + query_response)
                 res.type('text/html');
-                res.send('username already exists');
+                res.send('<html><body><h3>Username already exists =/ <a href="http://localhost:3000/signin">'
+                      +'Back to login</a></h3></body></html>');
              }
         });
     }
