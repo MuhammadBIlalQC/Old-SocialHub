@@ -26,6 +26,11 @@ app.get('/signin', function(req,res){
     }
 });
 
+app.get('/signout', function(req,res){
+  res.clearCookie('uname');
+  res.redirect('/signin');
+});
+
 app.post('/signin', function(req, res){
     res.cookie('uname', req.body.uname);
     res.redirect('/index');
@@ -34,6 +39,7 @@ app.post('/signin', function(req, res){
 app.post('/register', function(req,res){
       db.addUser(req,res);
 });
+
 
 app.get('/index', function(req,res){
     if(!req.cookies.uname)
