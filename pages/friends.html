@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--- Third Party Scripts --->
+    <script
+        src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <!--- <link href="http://localhost:3000/stylesheet.css" rel="stylesheet"> --->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="http://localhost:3000/style.css">
+    <!--- <link rel="stylesheet" href="http://localhost:3000/style.css"> --->
+    <script src="https://fb.me/react-with-addons-0.14.0.js"></script>
+    <script src="https://fb.me/react-dom-0.14.0.js"></script>
+    <script src="http://fb.me/JSXTransformer-0.13.1.js"></script>
+    <style>
+      .friends {
+        width: 400px;
+        height: 120px;
+        border: solid black 1px;
+        box-shadow: 0px 10px 8px 0px rgba(0,0,0,0.2);
+        padding: 5px;
+        margin: 15px;
+      }
+      body {
+        height: 100%;
+        width; 100%;
+      }
+      *{
+        overflow: visible !important;
+      }
+      .friends * {
+        display: inline;
+            
+      }
+        .friend-img {
+            width: 100px; 
+            height: 100px;
+            margin-right: 15px;
+        }
+        .friend-bttn {
+            margin-left: 50px;
+        }
+    </style>
+  </head>
+
+  <body>
+    <nav id="navigator" class="navbar navbar-inverse navbar-fixed-top" style="background-color: #00b0ff;">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header" >
+                <button type="button" class="navbar-toggle collapsed"  style="background-color: #555;" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">ProjectZ</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="#" >Hub</a></li>
+                    <li><a href="#" >Tasks</a></li>
+                    <li><a href="#" >Main Chat</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#" >Settings</a></li>
+                    <li><a href="http://localhost:3000/signout" >Sign Out</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+    </nav>
+     <!--- Filler for fixed navbar --->
+    <div class="container" style="position: relative; top: 100px; width: 100%;">
+      <div class="col-md-6">
+        <div id="friends-list">
+        </div>
+      </div>
+    </div>
+    <script src="friends.js"></script>
+      <script src="http://localhost:3000/friends.js"></script>
+  </body>
+</html>

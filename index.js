@@ -6,9 +6,11 @@ const db = require('./db.js');
 
 db.init();
 
+app.use(require('cors')());
 app.use(cookies);
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
+
 
 app.get('/', function(req,res){
    res.redirect('/signin');
@@ -30,10 +32,23 @@ app.get('/signout', function(req,res){
   res.clearCookie('uname');
   res.redirect('/signin');
 });
-
+app.get('/findfriends', function(req,res){
+    fs.readFile('pages/friends.html', function(err,data){
+        res.status(200);
+        res.type('text/html');
+        res.send(data);
+    });
+})
+app.get('/friends/add', function(req,res){
+  db.addFriend(req,res)
+});
+app.get('/allusers', function(req,res){
+    db.allUsers(req,res);
+})
 app.post('/signin', function(req, res){
-    res.cookie('uname', req.body.uname);
+    res.cookie('uname', req.body.username);
     res.redirect('/index');
+
 });
 
 app.post('/register', function(req,res){
@@ -64,11 +79,24 @@ app.get('/bear.png', function(req,res){
        res.send(data);
    });
 });
+app.get('/placeholder.png', function(req,res){
+    fs.readFile('pages/placeholder.png', function(err,data){
+       res.send(data);
+   });
+});
 app.get('/index.js', function(req,res){
     fs.readFile('pages/index_js.js', function(err,data){
        res.send(data);
    });
-})
+});
+app.get('/friends.js', function(req,res){
+    fs.readFile('pages/friends.js', function(err,data){
+        if(err)
+            console.log(err);
+        else
+            res.send(data);
+   });
+});
 
 app.listen(3000);
 console.log('Listening on port 3000...');

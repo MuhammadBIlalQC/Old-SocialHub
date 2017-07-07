@@ -1,11 +1,10 @@
             * {
-              overflow: hidden;  
+              overflow: hidden;
             }
             #head {
                 background-color: #00b0ff;
                 z-index: 100;
                 overflow: hidden;
-                position: fixed;
                 height: 5%;
                 width: 100%;
                 position: fixed;
@@ -15,7 +14,7 @@
             }
             #head>li {
                 display: inline;
-                
+
             }
             #head>li>a {
                 vertical-align: middle;
@@ -23,12 +22,12 @@
                 margin-top: 15px;
                 color: 	#fffafa;
                 text-decoration: none;
-                
+
             }
             #head>li>a:hover {
                 color: black;
             }
-            
+
             #content{
                 position: relative;
                 top: 5%;
@@ -51,7 +50,7 @@
                 box-shadow: 0px 4px 10px 0px rgba(0,0,0,0.2);
             }
             .announcement {
-                
+
                 max-width: 70%;
                 width: 600px;
                 min-height: 150px;
@@ -73,11 +72,15 @@
                 width: 600px;
                 height:150px;
                 margin-top:50px;
-                margin-left: 15px; 
+                margin-left: 15px;
                 resize:none;
             }
             .post-submit {
                 margin-left: 15px;
                 width: 80px;
                 margin-top: 3px;
+            }
+            #navigator a {
+                color: white !important;
+                text-align: center;
             }
