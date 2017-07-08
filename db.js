@@ -37,7 +37,7 @@ const db = {
                         res.cookie('uname', req.body.reg_username);
                         res.type('text/html');
                         const file = 'data/friends/' + req.body.reg_username;
-                        var friends = {friends: [], friendRequests: []};
+                        var friends = {friends: [], friendRequests: [], requestsSent: []};
                         jsonfile.writeFile(file, friends, function(err){
                           if (err)
                             console.log('Error initializing friends list');
@@ -49,7 +49,6 @@ const db = {
             }
             else
              {
-               console.log('query resp2: ' + query_response)
                 res.type('text/html');
                 res.send('<html><body><h3>Username already exists =/ <a href="http://localhost:3000/signin">'
                       +'Back to login</a></h3></body></html>');
@@ -57,27 +56,37 @@ const db = {
         });
     },
     addFriend: function(req,res) {
-      var user = req.cookies.uname;
-      var friend = req.query.add;
-
-      var friendPath = 'data/friends/' + friend;
-      if (fs.existsSync(friendPath)) //if the friend exists
+      if(!req.cookies.uname || !req.query.add)
       {
-        var friends = jsonfile.readFileSync(friendPath); //get his file
+          res.send({success: false, error: 'not logged in or incorrect request'});
+          return;
+      }
+      var userPath = 'data/friends/' + req.cookies.uname;
+      var friendPath = 'data/friends/' + req.query.add;
+    
+      if (fs.existsSync(friendPath))
+      {
+        var friend = jsonfile.readFileSync(friendPath);
+        var user = jsonfile.readFileSync(userPath);
         var exists = false;
-        for (var i = 0; i < friends.friendRequests.length; i++) //if he exists in his friend requests
-          if (friends.friendRequests[i] == user)
+        for (var i = 0; i < user.requestsSent.length; i++)
+          if (user.requestsSent[i] == req.query.add)
               exists = true;
 
-        if (exists) // send success false since cannot have duplicate requests
+        if (exists)
           res.send({success: false, error: 'friend request already pending'});
         else
         {
-          friends.friendRequests.push(user);
-          jsonfile.writeFile(friendPath, friends, function(err){
+          friend.friendRequests.push(req.cookies.uname);
+          jsonfile.writeFile(friendPath, friend, function(err){
             if(err)
               console.log('error adding friend');
           });
+          user.requestsSent.push(req.query.add)
+          jsonfile.writeFile(userPath, user, function(err){
+              if(err)
+                console.log(err);
+          })
           res.send({success: true, error: 'none'});
         }
       }
@@ -87,21 +96,112 @@ const db = {
         res.send({success: false, error: 'user does not exist'});
       }
     },
-    
-    allUsers: function(req,res){
+    allFriends: function(req,res){
+        const friends = jsonfile.readFileSync('data/friends/' + req.cookies.uname).friends;
+        var users = [];
+        for (var i = 0; i < friends.length; i++)
+            users.push({name: friends[i], imgsrc: 'placeholder.png', friend: true, sent: true, request: false, acceptType: false});
+        res.send(users);
+    },
+    nonFriends: function(req,res){
         this.conn.query("select usrname from accounts", function(err,data){
             if(err)
-            {
                 throw err;
-            }
             else 
+            {
+                
+                const user = jsonfile.readFileSync('data/friends/' + req.cookies.uname);
+                const friends = user.friends;
+                const requestsSent = user.requestsSent;
+                var users = [];
+                for (var i = 0; i < data.length; i++)
                 {
-                    var users = [];
-                    for (var i = 0; i < data.length; i++)
-                        users.push({name: data[i].usrname, imgsrc: 'placeholder.png'})
-                    res.send(users);
+                    var match = function(element){
+                        if (element == data[i].usrname)
+                            return true;
+                            
+                    };
+                    if (friends.find(match) || requestsSent.find(match) 
+                                || data[i].usrname == req.cookies.uname)
+                        continue;
+                    else
+                        users.push({name: data[i].usrname, imgsrc: 'placeholder.png', friend: false, sent: false, request: false});
+                };
+            }
+                res.send(users);
+        });
+    },
+    seeRequests: function(req,res){
+        var requestsSent = jsonfile.readFileSync('data/friends/' + req.cookies.uname).requestsSent;
+        var users = [];
+        for (var i = 0 ; i < requestsSent.length; i++)
+            users.push({name: requestsSent[i], imgsrc: 'placeholder.png', friend: false, sent: true, request: false, acceptType: false});
+        res.send(users);
+    },
+    seeFriendRequests: function(req,res){
+        var friendRequests = jsonfile.readFileSync('data/friends/' + req.cookies.uname).friendRequests;
+        var users = [];
+        for (var i = 0 ; i < friendRequests.length; i++)
+            users.push({name: friendRequests[i], imgsrc: 'placeholder.png', friend: false, sent: false, request: true, acceptType: true});
+        res.send(users);
+    },
+    acceptFriendRequest: function(req,res){
+        const userName = req.cookies.uname;
+        const friendName = req.query.friend;
+        
+        //const accept = req.query.accept;
+        
+        const accept = true;
+        if (!userName || !friendName)
+        {
+            console.log('sending back');
+            res.send({success: false});
+            return;
+        }
+        const friend = jsonfile.readFileSync('data/friends/' + friendName);
+        const user = jsonfile.readFileSync('data/friends/' + userName);
+        
+        if (accept)
+        {
+            console.log('___________');
+            console.log('before: ');
+            console.log(userName);
+            console.log(user);
+           for (let i = 0; i < user.friendRequests.length; i++)
+            {
+                console.log('friend request: ' + user.friendRequests[i])
+                if (user.friendRequests[i] == friendName)
+                {
+                    user.friendRequests.splice(i,1);
+                    user.friends.push(userName);
                 }
-        })
+            }
+            console.log(friend.requestsSent.length);
+            for (let i = 0; i < friend.requestsSent.length; i++)
+            {
+                if (friend.requestsSent[i] == userName)
+                {
+                    friend.requestsSent.splice(i,1);
+                    friend.friends.push(friendName);
+                }
+            }
+            jsonfile.writeFile('data/friends/' + friendName, friend, function(err){
+                if(err)
+                    console.log('could not update friend:' + err);
+            });
+            jsonfile.writeFile('data/friends/' + userName, user, function(err){
+                if(err)
+                console.log('could not update user: ' + err);
+            });
+            console.log('');
+            console.log('after');
+            console.log(userName);
+            console.log(user)
+            console.log('______________');
+        }
+        else {
+            res.send('error sending info wtf');
+        }
     }
 }
 
