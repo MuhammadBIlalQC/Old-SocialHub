@@ -63,7 +63,7 @@ const db = {
       }
       var userPath = 'data/friends/' + req.cookies.uname;
       var friendPath = 'data/friends/' + req.query.add;
-    
+
       if (fs.existsSync(friendPath))
       {
         var friend = jsonfile.readFileSync(friendPath);
@@ -107,9 +107,9 @@ const db = {
         this.conn.query("select usrname from accounts", function(err,data){
             if(err)
                 throw err;
-            else 
+            else
             {
-                
+
                 const user = jsonfile.readFileSync('data/friends/' + req.cookies.uname);
                 const friends = user.friends;
                 const requestsSent = user.requestsSent;
@@ -119,9 +119,9 @@ const db = {
                     var match = function(element){
                         if (element == data[i].usrname)
                             return true;
-                            
+
                     };
-                    if (friends.find(match) || requestsSent.find(match) 
+                    if (friends.find(match) || requestsSent.find(match)
                                 || data[i].usrname == req.cookies.uname)
                         continue;
                     else
@@ -148,9 +148,9 @@ const db = {
     acceptFriendRequest: function(req,res){
         const userName = req.cookies.uname;
         const friendName = req.query.friend;
-        
+
         //const accept = req.query.accept;
-        
+
         const accept = true;
         if (!userName || !friendName)
         {
@@ -160,20 +160,16 @@ const db = {
         }
         const friend = jsonfile.readFileSync('data/friends/' + friendName);
         const user = jsonfile.readFileSync('data/friends/' + userName);
-        
+
         if (accept)
         {
-            console.log('___________');
-            console.log('before: ');
-            console.log(userName);
-            console.log(user);
            for (let i = 0; i < user.friendRequests.length; i++)
             {
                 console.log('friend request: ' + user.friendRequests[i])
                 if (user.friendRequests[i] == friendName)
                 {
                     user.friendRequests.splice(i,1);
-                    user.friends.push(userName);
+                    user.friends.push(friendName);
                 }
             }
             console.log(friend.requestsSent.length);
@@ -182,7 +178,7 @@ const db = {
                 if (friend.requestsSent[i] == userName)
                 {
                     friend.requestsSent.splice(i,1);
-                    friend.friends.push(friendName);
+                    friend.friends.push(userName);
                 }
             }
             jsonfile.writeFile('data/friends/' + friendName, friend, function(err){
@@ -193,11 +189,6 @@ const db = {
                 if(err)
                 console.log('could not update user: ' + err);
             });
-            console.log('');
-            console.log('after');
-            console.log(userName);
-            console.log(user)
-            console.log('______________');
         }
         else {
             res.send('error sending info wtf');
