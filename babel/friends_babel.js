@@ -13,165 +13,71 @@ var getJSON = function(url, callback) {
     xhr.send();
 };
 
-var allUsers = [];
-var User = React.createClass({
-
-  getDefaultProps: function() {
-    return {imgsrc: "placeholder.png", name: "Some Random User"};
+var Post = React.createClass({
+  getDefaultProps: function(){
+    return {msg: 'This is a test message. I did not know what to put so I am babeling about anything'};
   },
-  
-  getButton: function(){
-    if (this.props.friend)
-      return <h3 className="friend-bttn" name={this.props.name}>Friends!</h3>;
-    if (this.props.request && this.props.sent)
-      return <h3 className="friend-bttn" name={this.props.name}> Added! <span className="glyphicon glyphicon-ok"></span></h3>;
-    if (this.props.request)
-      return (
-        <div className="inline">
-          <a className="btn btn-default friend-bttn" name={this.props.name} onClick={this.props.click}>Reject</a>;
-          <a className="btn btn-success friend-bttn" name={this.props.name} onClick={this.props.click}>Add Friend</a>;
-        </div>
-        )
-    if (!this.props.sent)
-      return <a className="btn btn-primary friend-bttn" name={this.props.name} onClick={this.props.click}>Add User</a>;
-    else
-      return <h3 className="friend-bttn" name={this.props.name}>Sent <span className="glyphicon glyphicon-ok"></span></h3>;
-  },
-  
-  testing: function(e){
-    e.preventDefault();
-  },
-  
-  render: function() {
-    return (
-        <div className="friends">
-            <img src={this.props.imgsrc} className="friend-img" />
-            <label className="friend-name" >{this.props.name}</label>
-            {this.getButton()}
-         </div>
-      )
-  }
+   render: function(){
+       var size = document.body.clientWidth > 700 ? 'normal' : 'small';
+       return (<div className="announcement">
+                  <h3 className="prompter"><i>Some-User (11/13/2020 9:32pm): </i></h3>
+                  <p className="prompter-msg">{this.props.msg}</p>
+                </div>)
+   }
 });
-var UserList = React.createClass({
-  getDefaultProps: function() {
-    return {users : [], request: false};
-  },
-  setUsers: function(){
-    this.setState({users: this.props.users});
-  },
 
- addFriend: function(e){
-   var Users = this.state.users;
-   var friend = e.target.name;
-   for (var i = 0; i < Users.length; i++)
-   {
-     if (friend == Users[i].name)
-      {
-        Users[i] = {name: Users[i].name, imgsrc: Users[i].imgsrc, sent: true};
-        getJSON('friends/add?add=' + friend, function(err,data){
-          if(err)
-            console.log('error sending request');
-          else
-            console.log(data);
-        });
-        this.setState({users: Users});
-        break;
-      }
-   }
- },
-  acceptFriend: function(e){
-    var Users = this.state.users;
-   var friend = e.target.name;
-   for (var i = 0; i < Users.length; i++)
-   {
-     if (friend == Users[i].name)
-      {
-        Users[i] = {name: Users[i].name, imgsrc: Users[i].imgsrc, sent: true};
-        getJSON('friends/acceptrequest?friend=' + friend, function(err,data){
-          if(err)
-            console.log('error sending request');
-          else
-            console.log(data);
-        });
-        this.setState({users: Users});
-        break;
-      }
-   }
-  },
-  
-  getUsers: function(){
-   if (!this.state)
-    return this.props.users;
-   return this.state.users;
- },
-  render: function() {
-    this.addFriend = this.addFriend.bind(this);
-    this.acceptFriend = this.acceptFriend.bind(this);
-    let self = this;
-    var nonFriendsList = this.getUsers().map(function(friend){
-      let friendBttn = friend.acceptType ? self.acceptFriend : self.addFriend;
-      return (<li className="inline" ><User name={friend.name} 
-                click={friendBttn} imgsrc={'http://localhost:3000/' + friend.imgsrc} 
-                request={friend.request} sent={friend.sent} acceptType={friend.accept} friend={friend.friend} /> </li>)
+var Posts = [<Post />,
+              <Post />, <Post />, <Post />, <Post />, <Post />,<Post />];
+
+var Announcement = React.createClass({
+  postAnnouncement: function() {
+    getJSON('announcements/post?content=' + this.refs.postData.value, function(err,data){
+      if (err)
+        console.log('error');
+      console.log(data);
     });
+    Posts.push(<Post msg={this.refs.postData.value} />);
+    this.refs.postData.value = "";
+    ReactDOM.render(<div><Announcement />{Posts.reverse()}</div>,
+                  document.getElementById('post-content'));
+  },
+  render: function(){
     return (
-      <div onLoad={this.setUsers}>
-        <h2>{this.props.heading}</h2>
-        <ul>
-          {nonFriendsList}
-        </ul>
-        <hr />
+      <div>
+       <textarea name="serverPost" id="serverPost" ref="postData" className="post"
+          placeholder="Post an Anouncement..."></textarea><br/>
+        <input className="btn btn-primary post-submit" type="button" value="Post" onClick={this.postAnnouncement} />
       </div>
       )
   }
 });
 
-
-
-getJSON('/friends/allfriends', function(err,data){
-   if (err)
-       console.log('error');
-    else
-    {
-      if(data.length != 0)
-        ReactDOM.render(<UserList heading="Your Friends" id="friendsList" users={data} />, document.getElementById('friends-list'));
-      else 
-        ReactDOM.render((
-            <div>
-              <h1>Your Friends</h1>
-              <h3 className="gray" >Uh oh. Looks like you have no friends yet. Please add friends below! </h3>
-            </div>
-          ), document.getElementById('friends-list'));
-
-    }
+var Content = React.createClass({
+  getDefaultProps: function(){
+    return {posts: []};
+  },
+  getInitialState: function(){
+    return {Posts: this.props.posts}
+  },
+  render: function(){
+    var Posts = this.state.Posts.map(function(post){
+      return <Post msg={post.content} />
+    });
+    console.log(Posts);
+    return (<div><Announcement />{Posts}</div>)
+  }
 });
 
 
-getJSON('/allusers', function(err,data){
-   if (err)
-       console.log('error');
-    else
-      if(data.length != 0)
-        ReactDOM.render(<UserList heading="Add Friends" id="nonFriendsList" users={data} />, document.getElementById('nonFriends-list'));
-});
-getJSON('/friends/sentrequests', function(err,data){
-   if (err)
-       console.log('error');
-    else
-      if(data.length != 0)
-        ReactDOM.render(<UserList heading="Sent Requests" id="requestSent-list" users={data} />, document.getElementById('requestSent-list'));
-});
-getJSON('/friends/requests', function(err,data){
-   if (err)
-       console.log('error');
-    else
-        if(data.length != 0)
-          ReactDOM.render(<UserList heading="Friend Requests" id="nonFriendsList" users={data} />, document.getElementById('requests'));
-});
 
-/*fetch("http://localhost:3000/allusers").then(function(res){
-   return res.json(); 
-}).then(function(data){
-    ReactDOM.render(<NonFriendsList id="nonFriendsList" users={data} />, document.getElementById('friends-list'));
+
+getJSON('announcements/get', function(err,data){
+  if (err)
+    console.log(err);
+  else
+  {
+    console.log()
+    ReactDOM.render(<Content posts={data} />,
+                  document.getElementById('post-content'));
+  }
 });
-*/

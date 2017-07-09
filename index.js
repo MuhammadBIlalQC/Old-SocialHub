@@ -114,7 +114,12 @@ app.get('/friends.js', function(req,res){
             res.send(data);
    });
 });
-
+app.get('/announcements/post', function(req,res){
+    db.postAnnouncement(req,res);
+});
+app.get('/announcements/get', function(req,res){
+    db.getAnnouncement(req,res);
+});
 
 app.listen(3000);
 console.log('Listening on port 3000...');

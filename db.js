@@ -37,7 +37,7 @@ const db = {
                         res.cookie('uname', req.body.reg_username);
                         res.type('text/html');
                         const file = 'data/friends/' + req.body.reg_username;
-                        var friends = {friends: [], friendRequests: [], requestsSent: []};
+                        var friends = {friends: [], friendRequests: [], requestsSent: [], announcements: []};
                         jsonfile.writeFile(file, friends, function(err){
                           if (err)
                             console.log('Error initializing friends list');
@@ -165,14 +165,12 @@ const db = {
         {
            for (let i = 0; i < user.friendRequests.length; i++)
             {
-                console.log('friend request: ' + user.friendRequests[i])
                 if (user.friendRequests[i] == friendName)
                 {
                     user.friendRequests.splice(i,1);
                     user.friends.push(friendName);
                 }
             }
-            console.log(friend.requestsSent.length);
             for (let i = 0; i < friend.requestsSent.length; i++)
             {
                 if (friend.requestsSent[i] == userName)
@@ -193,6 +191,25 @@ const db = {
         else {
             res.send('error sending info wtf');
         }
+    },
+    postAnnouncement: function(req,res){
+      var user = jsonfile.readFileSync('data/friends/' + req.cookies.uname);
+      console.log('---------------------');
+      console.log(req.query.content);
+      user.announcements.unshift(req.query.content);
+      console.log(user.announcements);
+      jsonfile.writeFile('data/friends/' + req.cookies.uname, user, function(err){
+        if (err)
+          console.log('error saving announcements: ', err);
+      })
+      res.send({id: 'got it'});
+    },
+    getAnnouncement: function(req,res){
+      var userAnnoucements = jsonfile.readFileSync('data/friends/' + req.cookies.uname).announcements;
+      var announcements = userAnnoucements.map(function(announ){
+        return {content: announ};
+      });
+      res.send(announcements);
     }
 }
 
