@@ -188,7 +188,7 @@ getJSON('/friends/requests', function (err, data) {
 });
 
 /*fetch("http://localhost:3000/allusers").then(function(res){
-   return res.json(); 
+   return res.json();
 }).then(function(data){
     ReactDOM.render(<NonFriendsList id="nonFriendsList" users={data} />, document.getElementById('friends-list'));
 });

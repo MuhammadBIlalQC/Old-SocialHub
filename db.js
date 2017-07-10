@@ -195,9 +195,10 @@ const db = {
     postAnnouncement: function(req,res){
       var user = jsonfile.readFileSync('data/friends/' + req.cookies.uname);
       console.log('---------------------');
-      console.log(req.query.content);
-      user.announcements.unshift(req.query.content);
-      console.log(user.announcements);
+      var content = req.query.content;
+      var date = new Date();
+      user.announcements.unshift({content: content, timePosted: {Month: date.getMonth() + 1, Day: date.getDate(), Year: date.getYear()+1900, Hour: date.getHours()%12,
+                                  Minutes: date.getMinutes(), Seconds: date.getSeconds(), Milliseconds : date.getMilliseconds()} });
       jsonfile.writeFile('data/friends/' + req.cookies.uname, user, function(err){
         if (err)
           console.log('error saving announcements: ', err);
@@ -205,11 +206,16 @@ const db = {
       res.send({id: 'got it'});
     },
     getAnnouncement: function(req,res){
-      var userAnnoucements = jsonfile.readFileSync('data/friends/' + req.cookies.uname).announcements;
+      var userName = req.cookies.uname
+      var userAnnoucements = jsonfile.readFileSync('data/friends/' + userName).announcements;
       var announcements = userAnnoucements.map(function(announ){
-        return {content: announ};
+        return {user: userName, content: announ.content, date: announ.timePosted};
       });
       res.send(announcements);
+    },
+    getUsername: function(req,res){
+
+        res.send({user: req.cookies.uname});
     }
 }
 

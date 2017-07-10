@@ -62,6 +62,9 @@ app.get('/allusers', function(req,res){
 app.get('/friends/allfriends', function(req,res){
     db.allFriends(req,res);
 });
+app.get('/friends/getusername', function(req,res){
+  db.getUsername(req,res);
+})
 app.post('/signin', function(req, res){
     res.cookie('uname', req.body.username);
     res.redirect('/index');

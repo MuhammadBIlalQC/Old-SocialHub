@@ -18,7 +18,6 @@ var Post = React.createClass({
     return {msg: 'This is a test message. I did not know what to put so I am babeling about anything'};
   },
    render: function(){
-       var size = document.body.clientWidth > 700 ? 'normal' : 'small';
        return (<div className="announcement">
                   <h3 className="prompter"><i>Some-User (11/13/2020 9:32pm): </i></h3>
                   <p className="prompter-msg">{this.props.msg}</p>
@@ -26,8 +25,6 @@ var Post = React.createClass({
    }
 });
 
-var Posts = [<Post />,
-              <Post />, <Post />, <Post />, <Post />, <Post />,<Post />];
 
 var Announcement = React.createClass({
   postAnnouncement: function() {
@@ -38,7 +35,7 @@ var Announcement = React.createClass({
     });
     Posts.push(<Post msg={this.refs.postData.value} />);
     this.refs.postData.value = "";
-    ReactDOM.render(<div><Announcement />{Posts.reverse()}</div>,
+    ReactDOM.render(<div><Announcement />{Posts}</div>,
                   document.getElementById('post-content'));
   },
   render: function(){
