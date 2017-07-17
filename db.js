@@ -149,12 +149,9 @@ const db = {
         const userName = req.cookies.uname;
         const friendName = req.query.friend;
 
-        //const accept = req.query.accept;
-
         const accept = true;
         if (!userName || !friendName)
         {
-            console.log('sending back');
             res.send({success: false});
             return;
         }
@@ -194,11 +191,11 @@ const db = {
     },
     postAnnouncement: function(req,res){
       var user = jsonfile.readFileSync('data/friends/' + req.cookies.uname);
-      console.log('---------------------');
+      var stamp = {Month: req.query.Month, Day: req.query.Day, Year: req.query.Year, Hour: req.query.Hour,
+                      Minutes: req.query.Minutes, Milliseconds: req.query.Milliseconds};
       var content = req.query.content;
       var date = new Date();
-      user.announcements.unshift({content: content, timePosted: {Month: date.getMonth() + 1, Day: date.getDate(), Year: date.getYear()+1900, Hour: date.getHours()%12,
-                                  Minutes: date.getMinutes(), Seconds: date.getSeconds(), Milliseconds : date.getMilliseconds()} });
+      user.announcements.unshift({content: content, timePosted: stamp });
       jsonfile.writeFile('data/friends/' + req.cookies.uname, user, function(err){
         if (err)
           console.log('error saving announcements: ', err);
@@ -207,14 +204,29 @@ const db = {
     },
     getAnnouncement: function(req,res){
       var userName = req.cookies.uname
-      var userAnnoucements = jsonfile.readFileSync('data/friends/' + userName).announcements;
+      var user = jsonfile.readFileSync('data/friends/' + userName);
+      var userAnnoucements = user.announcements;
       var announcements = userAnnoucements.map(function(announ){
         return {user: userName, content: announ.content, date: announ.timePosted};
+      });
+      user.friends.forEach(function(friend){
+        var friendAnnouncement = jsonfile.readFileSync('data/friends/' + friend).announcements;
+        var posts = friendAnnouncement.map(function(post){
+          return {user: friend, content: post.content, date: post.timePosted}
+        })
+        Array.prototype.push.apply(announcements, posts)
+      });
+      announcements.sort(function(a,b){
+        var postA = '' + a.date.Year + '' + a.date.Month + '' + a.date.Day + '' + a.date.Hour + '' + a.date.Minutes;
+        var postB = '' + b.date.Year + '' + b.date.Month + '' + b.date.Day + '' + b.date.Hour + '' + b.date.Minutes;
+        if (postA > postB) //earlier posts go in the front of array
+          return -1;
+        else
+          return 1;
       });
       res.send(announcements);
     },
     getUsername: function(req,res){
-
         res.send({user: req.cookies.uname});
     }
 }

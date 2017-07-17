@@ -53,7 +53,7 @@
                 box-shadow: 0px 4px 10px 0px rgba(0,0,0,0.2);
             }
             .announcement {
-
+                position: relative;
                 max-width: 70%;
                 width: 600px;
                 min-height: 150px;
@@ -87,4 +87,3 @@
                 color: white !important;
                 text-align: center;
             }
-    
