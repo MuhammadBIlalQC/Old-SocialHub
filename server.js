@@ -89,40 +89,47 @@ app.get('/index', function(req,res){
     }
 });
 
-app.get('/style.css', function(req,res){
-   fs.readFile('pages/style.css', function(err,data){
-       res.send(data);
-   })
-});
-app.get('/bear.png', function(req,res){
-   fs.readFile('pages/bear.png', function(err,data){
-       res.send(data);
-   });
-});
-app.get('/placeholder.png', function(req,res){
-    fs.readFile('pages/placeholder.png', function(err,data){
-       res.send(data);
-   });
-});
-app.get('/index.js', function(req,res){
-    fs.readFile('pages/index_js.js', function(err,data){
-       res.send(data);
-   });
-});
-app.get('/friends.js', function(req,res){
-    fs.readFile('pages/friends.js', function(err,data){
-        if(err)
-            console.log(err);
-        else
-            res.send(data);
-   });
-});
 app.get('/announcements/post', function(req,res){
     db.postAnnouncement(req,res);
 });
 app.get('/announcements/get', function(req,res){
     db.getAnnouncement(req,res);
 });
+
+app.get('/style.css', function(req,res){
+   fs.readFile('stylesheets/style.css', function(err,data){
+       res.send(data);
+   })
+});
+app.get('/friends.css', function(req,res){
+   fs.readFile('stylesheets/friends.css', function(err,data){
+       res.send(data);
+   })
+});
+app.get('/bear.png', function(req,res){
+   fs.readFile('images/bear.png', function(err,data){
+       res.send(data);
+   });
+});
+app.get('/placeholder.png', function(req,res){
+    fs.readFile('images/placeholder.png', function(err,data){
+       res.send(data);
+   });
+});
+app.get('/index.js', function(req,res){
+    fs.readFile('scripts/index.js', function(err,data){
+       res.send(data);
+   });
+});
+app.get('/friends.js', function(req,res){
+    fs.readFile('scripts/friends.js', function(err,data){
+        if(err)
+            console.log(err);
+        else
+            res.send(data);
+   });
+});
+
 
 app.listen(3000);
 console.log('Listening on port 3000...');
