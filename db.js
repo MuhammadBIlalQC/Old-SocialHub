@@ -20,12 +20,15 @@ const db = {
                 throw Error('Could not use database test.')
         });
     },
-    addUser: function(req,res) {
+    addUser: function(req,res, commandAdd) {
         let conn = this.conn;
-        conn.query('select * from accounts where usrname="'+req.body.reg_username+'"', function(err,query_response){
+        var user = commandAdd == null ? req.body.reg_username : commandAdd;
+        var password = commandAdd == null ? req.body.reg_password : 'adminInserted';
+        var email = commandAdd == null ? req.body.reg_email : '@adminInserted';
+        conn.query('select * from accounts where usrname="'+user+'"', function(err,query_response){
             if( (query_response == '') )
             {
-                conn.query('insert into accounts(usrname, pw, name) values("'+req.body.reg_username+'", "' +req.body.reg_password+'", "'+req.body.reg_email+'")', function(err){
+                conn.query('insert into accounts(usrname, pw, name) values("'+user+'", "' +password+'", "'+email+'")', function(err){
                     if(err)
                     {
                         res.type('text/html');
@@ -34,24 +37,32 @@ const db = {
                     }
                     else
                     {
-                        res.cookie('uname', req.body.reg_username);
-                        res.type('text/html');
-                        const file = 'data/friends/' + req.body.reg_username;
+                        if (res != null)
+                        {
+                          res.cookie('uname', user);
+                          res.type('text/html');
+                        }
+
+                        const file = 'data/friends/' + user;
                         var friends = {friends: [], friendRequests: [], requestsSent: [], announcements: []};
                         jsonfile.writeFile(file, friends, function(err){
                           if (err)
                             console.log('Error initializing friends list');
                         })
-                        res.send('<h1>You have registered Succesfully as ' + req.body.reg_username +
-                            '<br><a href="http://localhost:3000/index">Click here to continue</a> ');
+                        if (res != null)
+                          res.send('<h1>You have registered Succesfully as ' + req.body.reg_username +
+                              '<br><a href="http://localhost:3000/index">Click here to continue</a> ');
                     }
                   });
             }
             else
              {
-                res.type('text/html');
-                res.send('<html><body><h3>Username already exists =/ <a href="http://localhost:3000/signin">'
-                      +'Back to login</a></h3></body></html>');
+                if (res != null)
+                {
+                  res.type('text/html');
+                  res.send('<html><body><h3>Username already exists =/ <a href="http://localhost:3000/signin">'
+                        +'Back to login</a></h3></body></html>');
+                }
              }
         });
     },

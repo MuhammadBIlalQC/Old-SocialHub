@@ -3,7 +3,8 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const cookies = require('cookie-parser')('this-is-a-signed-cookie');
 const db = require('./db.js');
-
+const readline = require('readline');
+var readlineSync = require('readline-sync');
 db.init();
 
 
@@ -130,6 +131,47 @@ app.get('/friends.js', function(req,res){
    });
 });
 
-
 app.listen(3000);
+
+
 console.log('Listening on port 3000...');
+
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+process.stdout.write("Enter Command: ");
+rl.on('line', function (command) {
+  command = command.split(" ");
+  if (command.length < 1)
+  {
+    console.log('\tno commands given print usage.');
+  }
+  switch(command[0])
+  {
+    case "add":
+      if (command.length < 2)
+        console.log("\tNo Users To Insert");
+      else
+      {
+        for (var i = 1; i < command.length; i++)
+          {
+            console.log('\tAdding ' + command[i] + '...');
+            db.addUser(null, null, command[i]);
+          }
+      }
+      break;
+    case "help":
+      console.log('\thelp requested. printing usage');
+      break;
+    case "quit":
+      console.log('\tNow exiting');
+      process.exit();
+      break; //never reaches but w.e
+    default:
+      console.log('\terror retreving command "' + command[0] + '". printing usage');
+  }
+  console.log('\n');
+  process.stdout.write("Enter Command: ");
+});
