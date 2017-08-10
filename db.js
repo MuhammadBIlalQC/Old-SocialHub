@@ -5,6 +5,8 @@ const fs = require('fs');
 const db = {
 
     init: function(){
+        this.cache = {};
+        this.cache['admin'] = 'me';
         this.conn = sql.createConnection({
             host: 'localhost',
             user: 'root',
@@ -21,6 +23,7 @@ const db = {
         });
     },
     addUser: function(req,res, commandAdd) {
+        var self = this;
         let conn = this.conn;
         var user = commandAdd == null ? req.body.reg_username : commandAdd;
         var password = commandAdd == null ? req.body.reg_password : 'adminInserted';
@@ -42,7 +45,6 @@ const db = {
                           res.cookie('uname', user);
                           res.type('text/html');
                         }
-
                         const file = 'data/friends/' + user;
                         var friends = {friends: [], friendRequests: [], requestsSent: [], announcements: []};
                         jsonfile.writeFile(file, friends, function(err){
@@ -65,6 +67,9 @@ const db = {
                 }
              }
         });
+        var date = new Date()
+        var time = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString() + date.getMilliseconds().toString();
+        this.cache[user] = {lastActive: this.getTimeNow(), queue: []};
     },
     addFriend: function(req,res) {
       if(!req.cookies.uname || !req.query.add)
@@ -191,9 +196,13 @@ const db = {
                 if(err)
                     console.log('could not update friend:' + err);
             });
-            jsonfile.writeFile('data/friends/' + userName, user, function(err){
-                if(err)
-                console.log('could not update user: ' + err);
+            //create a file with all messages between users
+            var messageFile = userName < friendName ? userName + '-' + friendName : friendName + '-' + userName;
+            var messagePath = 'data/messages/' + messageFile;
+            var messages = [];
+            jsonfile.writeFile(messagePath, messages, function(err){
+              if (err)
+                console.log(err + 'Error initializing message file');
             });
         }
         else {
@@ -239,6 +248,95 @@ const db = {
     },
     getUsername: function(req,res){
         res.send({user: req.cookies.uname});
+    },
+    sendMessage(req, res, srcUser, dstUser, msg) { //rename msg
+      if (req != null)
+      {
+        srcUser = req.cookies.uname;
+        dstUser = req.query.dstUser;
+      }
+      //if message file doesnt exist for somereason, create it
+
+      var file = srcUser < dstUser ? srcUser + '-' + dstUser : dstUser + '-' + srcUser;
+      var path = 'data/messages/' + file;
+      if (!fs.existsSync(path))
+      {
+        jsonfile.writeFile(path, {}, function(err){
+          if (err)
+            console.log(err + 'Error initializing message file');
+        });
+      }
+      if (this.cache[dstUser] == null)
+        this.cache[dstUser] = {lastActive: '0', queue: []};
+      var date = new Date();
+      var time = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString() + date.getMilliseconds().toString(); //instead of date.getHours()*10^n + date.getMinutes()*10^n-2 ...
+      time = parseInt(time);
+      const waitTime = 10000; //10 seconds
+      var content = req != null ? req.query.msg : msg;
+      var msg = {content: content, timeStamp: time}; //need time stamp and content msg
+      this.cache[srcUser].lastActive = this.getTimeNow();
+      if (this.cache[dstUser].lastActive + waitTime < this.getTimeNow())
+        this.cache[dstUser].queue = []; //user not active -> reset queue
+      else
+        this.cache[dstUser].queue.push(msg);
+
+      var messages = [];
+      try
+      {
+        messages = jsonfile.readFileSync(path);
+      }
+      catch (err)
+      {
+        console.log(err);
+      }
+      if (msg == null)
+        msg = req.query.message;
+      messages.push(msg);
+      jsonfile.writeFile(path, messages, function(err){
+        if (err)
+          console.log(err);
+      })
+      if (res != null)
+        res.send({success: true});
+    },
+    fetchMessages(req, res, user){
+      user = req != null ? req.cookies.uname : user;
+      if (this.cache[user] == null)
+        this.cache[user] = {lastActive: this.getTimeNow(), queue: []};
+      if (req != null)
+      {
+
+        res.send({messages: this.cache[user].queue});
+        this.cache[user].queue = [];
+      }
+      else
+      {
+        console.log(this.cache[user].queue);
+        this.cache[user].queue = [];
+      }
+    },
+    displayCache(user) {
+      console.log(this.cache[user]);
+    },
+    getTimeNow() {
+      var date = new Date();
+      var hours = date.getHours().toString();
+      hours = hours.length == 2 ? hours : '0' + hours;
+      var minutes = date.getMinutes().toString();
+      minutes = minutes.length == 2 ? minutes : '0' + minutes;
+      var seconds = date.getSeconds().toString();
+      seconds = seconds.length == 2 ? seconds : '0' + seconds;
+      var timeNow =  hours + minutes + seconds;
+      return parseInt(timeNow);
+    },
+    isActive(user) {
+      const waitTime = 15; // in seconds
+      timeNow = this.getTimeNow();
+      if (this.cache[user] == null)
+        return -1;
+      if (this.cache[user].lastActive + waitTime > timeNow)
+        return 1;
+      return 0;
     }
 }
 

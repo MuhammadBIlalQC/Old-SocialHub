@@ -96,7 +96,12 @@ app.get('/announcements/post', function(req,res){
 app.get('/announcements/get', function(req,res){
     db.getAnnouncement(req,res);
 });
-
+app.get('/messages/fetch', function(req,res) {
+  db.fetchMessages(req,res);
+});
+app.get('/messages/send', function(req,res){
+  db.sendMessage(req,res);
+});
 app.get('/style.css', function(req,res){
    fs.readFile('stylesheets/style.css', function(err,data){
        res.send(data);
@@ -165,6 +170,51 @@ rl.on('line', function (command) {
     case "help":
       console.log('\thelp requested. printing usage');
       break;
+    case "cache":
+      if (command.length != 2)
+        console.log("cache <user>");
+      else
+        db.displayCache(command[1]);
+      break;
+    case "message":
+      if (command.length != 4)
+        console.log("\tNot enough arguments given.");
+      else
+      {
+        db.sendMessage(null, null, command[1], command[2], command[3]);
+        console.log('Sending [' + command[3] + '] from ' + command[1] + ' to ' + command[2]);
+      }
+      break;
+    case 'fetch':
+      if (command.length != 2)
+        console.log("usage: fetch <user>");
+      else
+      {
+        db.fetchMessages(null, null, command[1]);
+      }
+      break;
+    case 'isActive':
+      if (command.length != 2)
+        console.log('usage: isActive <user>');
+      else
+      {
+        var status = db.isActive(command[1]);
+        switch(status)
+        {
+          case 0:
+            console.log(command[1] + ' is not active.');
+            break;
+          case 1:
+            console.log(command[1] + ' is active.');
+            break;
+          case -1:
+            console.log('Error retriving data');
+            break;
+          default:
+            console.log('Error occured');
+        }
+        break;
+      }
     case "quit":
       console.log('\tNow exiting');
       process.exit();
