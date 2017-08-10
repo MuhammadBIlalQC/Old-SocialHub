@@ -273,7 +273,7 @@ const db = {
       time = parseInt(time);
       const waitTime = 10000; //10 seconds
       var content = req != null ? req.query.msg : msg;
-      var msg = {content: content, timeStamp: time}; //need time stamp and content msg
+      var msg = {content: content, timeStamp: time, origin: srcUser}; //need time stamp and content msg
       this.cache[srcUser].lastActive = this.getTimeNow();
       if (this.cache[dstUser].lastActive + waitTime < this.getTimeNow())
         this.cache[dstUser].queue = []; //user not active -> reset queue
