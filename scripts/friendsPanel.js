@@ -72,9 +72,11 @@ class FriendsList extends React.Component {
 class Chat extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {toggle: false};
+    this.toggleChat = this.toggleChat.bind(this);
     this.unToggledStyle = {
       marginRight: '5px',
-      width: '150px',
+      width: '250px',
       height: '40px',
       position: 'fixed',
       right: this.props.position + 'px',
@@ -83,10 +85,115 @@ class Chat extends React.Component {
       color: 'white',
       borderRadius: '15px 15px 0px 0px',
     }
+
+    this.toggledTextOutput = {
+      position: 'fixed',
+      marginRight: '5px',
+      marginTop: '0px',
+      width: '250px',
+      bottom: '30px',
+      height: '270px',
+      right: this.props.position + 'px',
+      border: '1px solid black',
+      borderTop: '2px',
+      overflowY: 'scroll',
+      padding: '5px',
+    }
+    this.toggledTextInput = {
+      position: 'fixed',
+      marginRight: '5px',
+      marginTop: '0px',
+      width: '250px',
+      bottom: '0px',
+      height: '30px',
+      right: this.props.position + 'px',
+      border: '1px solid black',
+      paddingLeft: '5px',
+    }
+    this.labelStyle = {
+      position: 'fixed',
+      marginRight: '5px',
+      marginBottom: '0px',
+      width: '250px',
+      bottom: '301px',
+      right: this.props.position + 'px',
+      backgroundColor: '#00b0ff',
+      color: 'white',
+      height: '30px',
+      fontSize: '17px',
+      paddingLeft: '10px',
+      paddingTop: '5px',
+      paddingBottom: '5px',
+    }
+    this.closeBttn = {
+      padding: '0px',
+      float: 'right',
+      height: '100%',
+      backgroundColor: 'black',
+    }
+    this.messages = {
+      padding: '0px',
+      display: 'block',
+      margin: '0px'
+    }
+  }
+
+  toggleChat(e) {
+    this.setState({toggle: !this.state.toggle});
+  }
+
+  close(e) {
+    console.log('closing');
+  }
+  render() {
+    if (this.state.toggle)
+      return (<div style={this.toggledStyle}>
+                <label style={this.labelStyle} onClick={this.toggleChat} >{this.props.user} <button className="glyphicon glyphicon-remove" name={this.props.user} style={this.closeBttn} onClick={this.props.onClose}></button></label>
+                <div style={this.toggledTextOutput}>
+                  <Message msg="hello world! what is going on with u nowadays? i am not doing much" origin={true}/>
+                  <Message msg="hello world!" origin={false} />
+                  <Message msg="what's going in?" origin={false} />
+                </div>
+                <input type="text" style={this.toggledTextInput} placeholder="type message here..." />
+              </div>)
+    else
+      return <button style={this.unToggledStyle} onClick={this.toggleChat}> {this.props.user} </button>
+  }
+}
+
+class Message extends React.Component {
+  constructor(props){
+    super(props);
+    this.messageRight = {
+      backgroundColor: '#00b0ff',
+      borderRadius: '15px 15px 15px 15px',
+      maxWidth: '80%',
+      color: 'white',
+      padding: '8px',
+      float: 'right',
+    };
+    this.messageLeft = {
+      backgroundColor: '#474e5d',
+      borderRadius: '15px 15px 15px 15px',
+      maxWidth: '80%',
+      color: 'white',
+      padding: '8px',
+      float: 'left',
+    }
+    this.messageHolder = {
+      width: '100%',
+    }
   }
 
   render() {
-    return <button style={this.unToggledStyle} > {this.props.user} </button>
+    if (this.props.origin)
+      return (<div style={this.messageHolder}>
+                <p style={this.messageRight}> {this.props.msg} </p>
+              </div>)
+    else
+      return (<div style={this.messageHolder}>
+                <p style={this.messageLeft}> {this.props.msg} </p>
+              </div>)
   }
 }
 
@@ -97,6 +204,7 @@ class Panel extends React.Component {
     this.state = {toggle: false, chatHeads: []};
     this.togglePanel = this.togglePanel.bind(this);
     this.openChatHead = this.openChatHead.bind(this);
+    this.closeChatHead = this.closeChatHead.bind(this);
   }
 
   togglePanel(e) {
@@ -124,11 +232,19 @@ class Panel extends React.Component {
     }
   }
 
+  closeChatHead(e) {
+    var chatHeads = this.state.chatHeads;
+    var pos = chatHeads.indexOf(e.target.name);
+    chatHeads.splice(pos, 1);
+    console.log(chatHeads);
+    this.setState({chatHeads: chatHeads});
+  }
   render() {
     var pos = 50;
+    var closeChatHead = this.closeChatHead;
     var chatHeads = this.state.chatHeads.map(function(head){
-      pos += 150;
-      return <Chat position={pos} user={head}/>
+      pos += 260;
+      return <Chat position={pos} user={head} onClose={closeChatHead} />
     });
     return (<div>
               <FriendsButton onButtonClick={this.togglePanel} />
