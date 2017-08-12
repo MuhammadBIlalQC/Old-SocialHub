@@ -249,32 +249,29 @@ const db = {
     getUsername: function(req,res){
         res.send({user: req.cookies.uname});
     },
-    sendMessage(req, res, srcUser, dstUser, msg) { //rename msg
-      if (req != null)
-      {
-        srcUser = req.cookies.uname;
-        dstUser = req.query.dstUser;
-      }
-      //if message file doesnt exist for somereason, create it
+    sendMessage(ws, req, srcUser, dstUser, msg) { //rename msg
 
+      //if message file doesnt exist for somereason, create it
       var file = srcUser < dstUser ? srcUser + '-' + dstUser : dstUser + '-' + srcUser;
       var path = 'data/messages/' + file;
       if (!fs.existsSync(path))
-      {
         jsonfile.writeFile(path, {}, function(err){
           if (err)
             console.log(err + 'Error initializing message file');
         });
-      }
+
       if (this.cache[dstUser] == null)
         this.cache[dstUser] = {lastActive: '0', queue: []};
       var date = new Date();
       var time = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString() + date.getMilliseconds().toString(); //instead of date.getHours()*10^n + date.getMinutes()*10^n-2 ...
       time = parseInt(time);
       const waitTime = 10000; //10 seconds
-      var content = req != null ? req.query.msg : msg;
+      var content = msg;
       var msg = {content: content, timeStamp: time, origin: srcUser}; //need time stamp and content msg
-      this.cache[srcUser].lastActive = this.getTimeNow();
+      if (this.cache[srcUser] == null)
+        this.cache[srcUser] = {lastActive: this.getTimeNow(), queue: []};
+      else
+        this.cache[srcUser].lastActive = this.getTimeNow();
       if (this.cache[dstUser].lastActive + waitTime < this.getTimeNow())
         this.cache[dstUser].queue = []; //user not active -> reset queue
       else
@@ -296,24 +293,41 @@ const db = {
         if (err)
           console.log(err);
       })
-      if (res != null)
-        res.send({success: true});
+      // if (ws != null)
+      //   ws.send(JSON.stringify({success: true}));
     },
-    fetchMessages(req, res, user){
+    fetchMessages(ws, req, user){
       user = req != null ? req.cookies.uname : user;
       if (this.cache[user] == null)
         this.cache[user] = {lastActive: this.getTimeNow(), queue: []};
+      else
+        this.cache[user].lastActive = this.getTimeNow();
       if (req != null)
       {
-
-        res.send({messages: this.cache[user].queue});
+        ws.send(JSON.stringify({messages: this.cache[user].queue}));
         this.cache[user].queue = [];
       }
       else
-      {
         console.log(this.cache[user].queue);
-        this.cache[user].queue = [];
-      }
+
+    },
+    loadAllMessages(ws,req,user, friend) {
+      const file = user < friend ? user + '-' + friend : friend + '-' + user;
+      console.log
+      const path = 'data/messages/' + file;
+      if (!fs.existsSync(path))
+        console.log('??'); //create the file
+      const allMessages = jsonfile.readFileSync(path);
+      // console.log(allMessages);
+      ws.send(JSON.stringify({messages: allMessages, loadMessages: true, dstUser: friend}));
+      console.log(allMessages);
+      // queue = [];
+      // allMessages.forEach(function(message){
+      //   queue.push(message)
+        // ws.send(JSON.stringify({messages: arr}));
+      // });
+      // this.cache[user].queue = queue;
+      // this.fetchMessages(ws,req,user);
     },
     displayCache(user) {
       console.log(this.cache[user]);

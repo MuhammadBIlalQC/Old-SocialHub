@@ -4,14 +4,14 @@ const bodyParser = require('body-parser');
 const cookies = require('cookie-parser')('this-is-a-signed-cookie');
 const db = require('./db.js');
 const readline = require('readline');
-var readlineSync = require('readline-sync');
+const readlineSync = require('readline-sync');
+const ws = require('express-ws')(app);
 db.init();
 
 
 app.use(cookies);
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
-
 
 app.get('/', function(req,res){
    res.redirect('/signin');
@@ -96,12 +96,33 @@ app.get('/announcements/post', function(req,res){
 app.get('/announcements/get', function(req,res){
     db.getAnnouncement(req,res);
 });
-app.get('/messages/fetch', function(req,res) {
-  db.fetchMessages(req,res);
+// app.get('/messages/fetch', function(req,res) {
+//   db.fetchMessages(req,res);
+// });
+// app.get('/messages/send', function(req,res){
+//   db.sendMessage(req,res);
+// });
+
+app.ws('/messages', function(ws, req){
+  ws.on('message', function(msg){
+    if (msg == '&&hello&&')
+      db.fetchMessages(ws,req);
+    else if (msg[0] == "&" && msg[1] == "&")
+    {
+      console.log('Retriving data for: ' + msg.substring(2, msg.length-2));
+      db.loadAllMessages(ws,req,req.cookies.uname, msg.substring(2, msg.length-2))
+    }
+    else //assumed to be sending a message
+    {
+      console.log('sendMessage() abouta be called');
+      const data = JSON.parse(msg);
+      console.log("" + data);
+      
+      db.sendMessage(ws,req, req.cookies.uname, data.dstUser, data.message);
+    }
+  });
 });
-app.get('/messages/send', function(req,res){
-  db.sendMessage(req,res);
-});
+//static files
 app.get('/style.css', function(req,res){
    fs.readFile('stylesheets/style.css', function(err,data){
        res.send(data);
@@ -135,7 +156,11 @@ app.get('/friends.js', function(req,res){
             res.send(data);
    });
 });
-
+app.get('/friendsPanel.js', function(req,res){
+    fs.readFile('scripts/friendsPanel.js', function(err,data){
+       res.send(data);
+   });
+});
 app.listen(3000);
 
 
@@ -185,6 +210,13 @@ rl.on('line', function (command) {
         console.log('Sending [' + command[3] + '] from ' + command[1] + ' to ' + command[2]);
       }
       break;
+    case "message-file": {
+      if (command.length != 3)
+        console.log('usage: message-file <user-a> <user-b>');
+      else
+        db.loadAllMessages(null, null, command[1], command[2]);
+      break;
+    }
     case 'fetch':
       if (command.length != 2)
         console.log("usage: fetch <user>");

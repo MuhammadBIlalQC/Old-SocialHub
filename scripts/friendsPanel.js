@@ -1,4 +1,3 @@
-const friends = ['Riven', 'Jax', 'Nasus', 'Darius', 'Talon']; //example friends
 
 class FriendsButton extends React.Component {
   constructor(props){
@@ -60,8 +59,8 @@ class FriendsList extends React.Component {
   render() {
     if (this.props.show == true)
       return (<ul style={this.listStyle}>
-                <li><FriendLabel user="FriendA" click={this.props.click} /></li>
-                <li><FriendLabel user="FriendB" click={this.props.click} /></li>
+                <li><FriendLabel user="h1" click={this.props.click} /></li>
+                <li><FriendLabel user="pandabear" click={this.props.click} /></li>
                 <li><FriendLabel user="FriendC" click={this.props.click} /></li>
               </ul>)
     else
@@ -85,7 +84,6 @@ class Chat extends React.Component {
       color: 'white',
       borderRadius: '15px 15px 0px 0px',
     }
-
     this.toggledTextOutput = {
       position: 'fixed',
       marginRight: '5px',
@@ -101,61 +99,96 @@ class Chat extends React.Component {
     }
     this.toggledTextInput = {
       position: 'fixed',
+      marginTop: '0px',
+      width: '202px',
+      bottom: '0px',
+      height: '30px',
+      right: (this.props.position+53) + 'px',
+      border: '1px solid black',
+      paddingLeft: '5px',
+      fontSize: '16px',
+    }
+    this.sendButton = {
+      position: 'fixed',
       marginRight: '5px',
       marginTop: '0px',
-      width: '250px',
+      width: '50px',
       bottom: '0px',
       height: '30px',
       right: this.props.position + 'px',
       border: '1px solid black',
-      paddingLeft: '5px',
+      backgroundColor: '#00b0ff',
+      fontSize: '15px',
     }
     this.labelStyle = {
       position: 'fixed',
       marginRight: '5px',
       marginBottom: '0px',
-      width: '250px',
+      width: '251px',
       bottom: '301px',
       right: this.props.position + 'px',
       backgroundColor: '#00b0ff',
       color: 'white',
       height: '30px',
       fontSize: '17px',
+      lineHeight: '33px',
       paddingLeft: '10px',
-      paddingTop: '5px',
-      paddingBottom: '5px',
+      borderRadius: '15px 15px 0px 0px',
     }
     this.closeBttn = {
-      padding: '0px',
+      width: '35px',
       float: 'right',
       height: '100%',
       backgroundColor: 'black',
+      border: 'black 1px',
     }
     this.messages = {
       padding: '0px',
       display: 'block',
       margin: '0px'
     }
+    this.messageEntered = this.messageEntered.bind(this);
   }
 
   toggleChat(e) {
     this.setState({toggle: !this.state.toggle});
   }
-
-  close(e) {
-    console.log('closing');
+  messageEntered(e) {
+    if (e.key == 'Enter')
+      this.props.sendText(e);
   }
   render() {
     if (this.state.toggle)
-      return (<div style={this.toggledStyle}>
-                <label style={this.labelStyle} onClick={this.toggleChat} >{this.props.user} <button className="glyphicon glyphicon-remove" name={this.props.user} style={this.closeBttn} onClick={this.props.onClose}></button></label>
-                <div style={this.toggledTextOutput}>
-                  <Message msg="hello world! what is going on with u nowadays? i am not doing much" origin={true}/>
-                  <Message msg="hello world!" origin={false} />
-                  <Message msg="what's going in?" origin={false} />
-                </div>
-                <input type="text" style={this.toggledTextInput} placeholder="type message here..." />
-              </div>)
+    {
+      var Messages;
+      if (this.props.messages == null)
+        Messages = [];
+      else
+        {
+          const props = this.props;
+          Messages = this.props.messages.map(function(message){
+                console.log('Messages Retrieved: ' + message);
+
+                const origin = ("" + message.origin) == props.user ? false : true;
+                console.log(message.origin);
+                return <Message msg={"" + message.content} origin={origin} />
+                //return <Message msg={message.content} origin={origin} />
+            });
+        }
+        return (<div style={this.toggledStyle}>
+                  <label style={this.labelStyle} onClick={this.toggleChat}>{this.props.user}
+                    <button className="glyphicon glyphicon-remove" name={this.props.user} style={this.closeBttn} onClick={this.props.onClose}>
+                    </button>
+                  </label>
+                  <div style={this.toggledTextOutput}>
+                    {Messages}
+                  </div>
+                  <input type="text" id={this.props.user + 'InputChat'} name={this.props.user} style={this.toggledTextInput} placeholder="type message here..." onKeyPress={this.messageEntered}/>
+                  <button style={this.sendButton} name={this.props.user} onClick={this.props.sendText} >
+                    Send
+                  </button>
+                </div>)
+    }
     else
       return <button style={this.unToggledStyle} onClick={this.toggleChat}> {this.props.user} </button>
   }
@@ -171,6 +204,7 @@ class Message extends React.Component {
       color: 'white',
       padding: '8px',
       float: 'right',
+      fontSize: '15px',
     };
     this.messageLeft = {
       backgroundColor: '#474e5d',
@@ -179,6 +213,7 @@ class Message extends React.Component {
       color: 'white',
       padding: '8px',
       float: 'left',
+      fontSize: '15px',
     }
     this.messageHolder = {
       width: '100%',
@@ -201,12 +236,58 @@ class Message extends React.Component {
 class Panel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {toggle: false, chatHeads: []};
+    console.log(<Chat />)
+    this.processMessages = this.processMessages.bind(this);
+    this.ws = new WebSocket("ws://localhost:3000/messages");
+    let ws = this.ws;
+    ws.onopen = function(e) {
+      ws.send('&&hello&&');
+    };
+    ws.onmessage = this.processMessages;
+
+    this.state = {toggle: false, chatHeads: [], chatMessages: {}};
     this.togglePanel = this.togglePanel.bind(this);
     this.openChatHead = this.openChatHead.bind(this);
     this.closeChatHead = this.closeChatHead.bind(this);
+    this.sendMessage = this.sendMessage.bind(this);
   }
 
+  processMessages(e) {
+    const data = JSON.parse(e.data);
+    const messages = data.messages;
+    if (messages.length != 0)
+    {
+
+      const chatMessages = this.state.chatMessages;
+      const chatHead = data.dstUser;
+        messages.forEach(function(message){
+          const msgSrc = chatHead == null ? message.origin : chatHead;
+          if (chatMessages[msgSrc] == null)
+            chatMessages[msgSrc] = [];
+          chatMessages[msgSrc].push(message);
+        });
+      this.setState({chatMessages: chatMessages});
+    }
+    let ws = this.ws;
+    setTimeout(function(){
+      ws.send('&&hello&&');
+    }, 1000);
+  };
+
+  sendMessage(e) {
+    const user = e.target.name;
+    const input = document.getElementById(user + 'InputChat');
+    const message = input.value;
+    input.value = "";
+
+    const chatMessages = this.state.chatMessages;
+    if (chatMessages[user] == null)
+      chatMessages[user] = [];
+    chatMessages[user].push({content: message, origin: ""});
+    this.setState({chatMessages: chatMessages});
+    const sendMessage = {message: message, dstUser: user};
+    this.ws.send(JSON.stringify(sendMessage));
+  }
   togglePanel(e) {
     const toggle = !this.state.toggle;
     this.setState({toggle: toggle});
@@ -229,6 +310,7 @@ class Panel extends React.Component {
     {
       chatHeads.push(e.target.name);
       this.setState({chatHeads: chatHeads});
+      this.ws.send("&&"+e.target.name+"&&");
     }
   }
 
@@ -236,15 +318,18 @@ class Panel extends React.Component {
     var chatHeads = this.state.chatHeads;
     var pos = chatHeads.indexOf(e.target.name);
     chatHeads.splice(pos, 1);
-    console.log(chatHeads);
     this.setState({chatHeads: chatHeads});
   }
   render() {
     var pos = 50;
-    var closeChatHead = this.closeChatHead;
+    const closeChatHead = this.closeChatHead;
+    const chatMessages = this.state.chatMessages;
+    const sendMessage = this.sendMessage;
     var chatHeads = this.state.chatHeads.map(function(head){
       pos += 260;
-      return <Chat position={pos} user={head} onClose={closeChatHead} />
+      if (chatMessages[head] == null)
+        chatMessages[head] = [];
+      return <Chat position={pos} user={head} onClose={closeChatHead} messages={chatMessages[head]} sendText={sendMessage} />
     });
     return (<div>
               <FriendsButton onButtonClick={this.togglePanel} />
@@ -256,3 +341,11 @@ class Panel extends React.Component {
 
 
 ReactDOM.render(<Panel />, document.getElementById('friends-Panel'));
+
+// var ws = new WebSocket("ws://localhost:3000/fetch");
+// ws.onopen = function(e) {
+//   ws.send('hello server');
+// }
+// ws.onmessage = function(e) {
+//   console.log(e.data);
+// }
