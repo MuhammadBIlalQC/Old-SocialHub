@@ -192,6 +192,10 @@ const db = {
                     friend.friends.push(userName);
                 }
             }
+            jsonfile.writeFile('data/friends/' + userName, user, function(err){
+              if(err)
+                console.log(err);
+            })
             jsonfile.writeFile('data/friends/' + friendName, friend, function(err){
                 if(err)
                     console.log('could not update friend:' + err);
@@ -313,21 +317,11 @@ const db = {
     },
     loadAllMessages(ws,req,user, friend) {
       const file = user < friend ? user + '-' + friend : friend + '-' + user;
-      console.log
       const path = 'data/messages/' + file;
       if (!fs.existsSync(path))
         console.log('??'); //create the file
       const allMessages = jsonfile.readFileSync(path);
-      // console.log(allMessages);
       ws.send(JSON.stringify({messages: allMessages, loadMessages: true, dstUser: friend}));
-      console.log(allMessages);
-      // queue = [];
-      // allMessages.forEach(function(message){
-      //   queue.push(message)
-        // ws.send(JSON.stringify({messages: arr}));
-      // });
-      // this.cache[user].queue = queue;
-      // this.fetchMessages(ws,req,user);
     },
     displayCache(user) {
       console.log(this.cache[user]);

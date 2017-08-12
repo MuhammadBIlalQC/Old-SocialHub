@@ -1,3 +1,17 @@
+var getJSON = function(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+      var status = xhr.status;
+      if (status == 200) {
+        callback(null, xhr.response);
+      } else {
+        callback(status);
+      }
+    };
+    xhr.send();
+  }
 
 class FriendsButton extends React.Component {
   constructor(props){
@@ -54,14 +68,34 @@ class FriendsList extends React.Component {
       padding: '0px',
       border: '1px solid',
     };
+    this.state = {friends: []};
+    this.setFriends = this.setFriends.bind(this);
+    const setFriends = this.setFriends;
+    getJSON('friends/allfriends', function(err,data){
+        if (err)
+         console.log(err);
+       else
+          setFriends(data);
+    });
+  }
+
+  setFriends(data){
+    const friends = [];
+    data.forEach(function(friend){
+      friends.push(friend.name);
+    });
+    this.setState({friends: friends});
   }
 
   render() {
+    const friends = this.state.friends;
+    const props = this.props;
+    var list = friends.map(function(friend){
+      return <li><FriendLabel user={friend} click={props.click} /> </li>
+    });
     if (this.props.show == true)
       return (<ul style={this.listStyle}>
-                <li><FriendLabel user="h1" click={this.props.click} /></li>
-                <li><FriendLabel user="pandabear" click={this.props.click} /></li>
-                <li><FriendLabel user="FriendC" click={this.props.click} /></li>
+                {list}
               </ul>)
     else
       return <div></div>;
@@ -167,10 +201,8 @@ class Chat extends React.Component {
         {
           const props = this.props;
           Messages = this.props.messages.map(function(message){
-                console.log('Messages Retrieved: ' + message);
 
                 const origin = ("" + message.origin) == props.user ? false : true;
-                console.log(message.origin);
                 return <Message msg={"" + message.content} origin={origin} />
                 //return <Message msg={message.content} origin={origin} />
             });
@@ -236,7 +268,6 @@ class Message extends React.Component {
 class Panel extends React.Component {
   constructor(props) {
     super(props);
-    console.log(<Chat />)
     this.processMessages = this.processMessages.bind(this);
     this.ws = new WebSocket("ws://localhost:3000/messages");
     let ws = this.ws;
@@ -341,11 +372,3 @@ class Panel extends React.Component {
 
 
 ReactDOM.render(<Panel />, document.getElementById('friends-Panel'));
-
-// var ws = new WebSocket("ws://localhost:3000/fetch");
-// ws.onopen = function(e) {
-//   ws.send('hello server');
-// }
-// ws.onmessage = function(e) {
-//   console.log(e.data);
-// }

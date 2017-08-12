@@ -109,15 +109,12 @@ app.ws('/messages', function(ws, req){
       db.fetchMessages(ws,req);
     else if (msg[0] == "&" && msg[1] == "&")
     {
-      console.log('Retriving data for: ' + msg.substring(2, msg.length-2));
       db.loadAllMessages(ws,req,req.cookies.uname, msg.substring(2, msg.length-2))
     }
     else //assumed to be sending a message
     {
-      console.log('sendMessage() abouta be called');
       const data = JSON.parse(msg);
-      console.log("" + data);
-      
+
       db.sendMessage(ws,req, req.cookies.uname, data.dstUser, data.message);
     }
   });
