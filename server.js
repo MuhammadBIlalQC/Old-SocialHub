@@ -13,6 +13,7 @@ app.use(cookies);
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
 
+
 app.get('/', function(req,res){
    res.redirect('/signin');
 });
@@ -28,12 +29,18 @@ app.get('/signin', function(req,res){
         res.redirect('/index')
     }
 });
-
+app.get('/temp', function(req,res){
+  fs.readFile('pages/temp.html', function(err,data){
+    res.status(200);
+    res.type('text/html');
+    res.send(data);
+  });
+});
 app.get('/signout', function(req,res){
   res.clearCookie('uname');
   res.redirect('/signin');
 });
-app.get('/findfriends', function(req,res){
+app.get('/friends', function(req,res){
     if(!req.cookies.uname)
         res.redirect('/signin')
     else
@@ -44,7 +51,7 @@ app.get('/findfriends', function(req,res){
         res.send(data);
     });
         }
-})
+});
 app.get('/friends/add', function(req,res){
   db.addFriend(req,res)
 });
@@ -158,6 +165,11 @@ app.get('/friendsPanel.js', function(req,res){
        res.send(data);
    });
 });
+app.get('/hub.js', function(req,res){
+  fs.readFile('scripts/hub.js', function(err,data){
+     res.send(data);
+ });
+})
 app.listen(3000);
 
 

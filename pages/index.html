@@ -3,6 +3,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!--- Third Party Scripts --->
+        <link href="https://fonts.googleapis.com/css?family=Indie+Flower|Josefin+Sans" rel="stylesheet">
         <script
             src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
             crossorigin="anonymous"></script>
@@ -14,36 +15,11 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.38/browser.js"></script>
         <link rel="stylesheet" href="style.css">
+        
     </head>
     <body>
-        <nav id="navigator" class="navbar navbar-inverse navbar-fixed-top" style="background-color: #00b0ff;">
-            <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header" >
-                    <button type="button" class="navbar-toggle collapsed"  style="background-color: #555;" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="http://localhost:3000/index">ProjectZ</a>
-                </div>
-
-    <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li><a href="#">Hub</a></li>
-                        <li><a href="http://localhost:3000/findfriends" >Friends</a></li>
-                        <li><a href="#" >Message Board</a></li>
-                    </ul>
-
-                    <ul class="nav navbar-nav navbar-right">
-                        <li><a href="#" >Settings</a></li>
-                        <li><a href="http://localhost:3000/signout" >Sign Out</a></li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-              </div><!-- /.container-fluid -->
-        </nav>
+        <div id="hub">
+        </div>
 
 
           <div class="container" id="content" style="overflow-y: visible;">
@@ -65,5 +41,6 @@
         </script>
         <script type="text/babel" src="friendsPanel.js">
         </script>
+        <script type="text/babel" src="hub.js"></script>
     </body>
 </html>
