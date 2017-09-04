@@ -258,11 +258,6 @@ const db = {
       //if message file doesnt exist for somereason, create it
       var file = srcUser < dstUser ? srcUser + '-' + dstUser : dstUser + '-' + srcUser;
       var path = 'data/messages/' + file;
-      if (!fs.existsSync(path))
-        jsonfile.writeFile(path, {}, function(err){
-          if (err)
-            console.log(err + 'Error initializing message file');
-        });
 
       if (this.cache[dstUser] == null)
         this.cache[dstUser] = {lastActive: '0', queue: []};
@@ -284,21 +279,32 @@ const db = {
       var messages = [];
       try
       {
-        messages = jsonfile.readFileSync(path);
+
+        if (!fs.existsSync(path))
+        {
+          jsonfile.writeFile(path, {}, function(err){
+            if (err)
+              console.log(err + 'Error initializing message file');
+          });
+          messages = [];
+        }
+        else
+          messages = jsonfile.readFileSync(path);
+
+        if (msg == null)
+          msg = req.query.message;
+        messages.push(msg);
+        jsonfile.writeFile(path, messages, function(err){
+          if (err)
+            console.log("Error putting in message: " + err);
+        })
       }
       catch (err)
       {
         console.log(err);
       }
-      if (msg == null)
-        msg = req.query.message;
-      messages.push(msg);
-      jsonfile.writeFile(path, messages, function(err){
-        if (err)
-          console.log(err);
-      })
-      // if (ws != null)
-      //   ws.send(JSON.stringify({success: true}));
+      if (ws != null)
+        ws.send(JSON.stringify({success: true}));
     },
     fetchMessages(ws, req, user){
       user = req != null ? req.cookies.uname : user;
@@ -318,9 +324,9 @@ const db = {
     loadAllMessages(ws,req,user, friend) {
       const file = user < friend ? user + '-' + friend : friend + '-' + user;
       const path = 'data/messages/' + file;
-      if (!fs.existsSync(path))
-        console.log('??'); //create the file
-      const allMessages = jsonfile.readFileSync(path);
+      var allMessages = {};
+      if (fs.existsSync(path))
+        allMessages = jsonfile.readFileSync(path);
       ws.send(JSON.stringify({messages: allMessages, loadMessages: true, dstUser: friend}));
     },
     displayCache(user) {

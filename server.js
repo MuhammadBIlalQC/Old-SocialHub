@@ -1,10 +1,9 @@
 const app = require('express')();
 const fs = require('fs');
 const bodyParser = require('body-parser');
-const cookies = require('cookie-parser')('this-is-a-signed-cookie');
+const cookies = require('cookie-parser')('this-is-a-signed-cookie'); //not really safe if not used with https
 const db = require('./db.js');
 const readline = require('readline');
-const readlineSync = require('readline-sync');
 const ws = require('express-ws')(app);
 db.init();
 
@@ -17,72 +16,136 @@ app.use(bodyParser.json());
 app.get('/', function(req,res){
    res.redirect('/signin');
 });
-app.get('/signin', function(req,res){
-    if(!req.cookies.uname)
-        fs.readFile('pages/signin.html', function(err,data){
-            res.status(200);
-            res.type('text/html');
-            res.send(data);
-        });
-    else
-    {
-        res.redirect('/index')
-    }
-});
-app.get('/temp', function(req,res){
-  fs.readFile('pages/temp.html', function(err,data){
-    res.status(200);
-    res.type('text/html');
-    res.send(data);
-  });
-});
-app.get('/signout', function(req,res){
-  res.clearCookie('uname');
-  res.redirect('/signin');
-});
-app.get('/friends', function(req,res){
-    if(!req.cookies.uname)
-        res.redirect('/signin')
-    else
-        {
-    fs.readFile('pages/friends.html', function(err,data){
-        res.status(200);
-        res.type('text/html');
-        res.send(data);
-    });
-        }
-});
-app.get('/friends/add', function(req,res){
-  db.addFriend(req,res)
-});
-app.get('/friends/sentrequests', function(req,res){
-    db.seeRequests(req,res);
-})
-app.get('/friends/requests', function(req,res){
-    db.seeFriendRequests(req,res);
-});
-app.get('/friends/acceptrequest', function(req,res){
-    db.acceptFriendRequest(req,res);
-});
-app.get('/allusers', function(req,res){
-    db.nonFriends(req,res);
-});
-app.get('/friends/allfriends', function(req,res){
-    db.allFriends(req,res);
-});
-app.get('/friends/getusername', function(req,res){
-  db.getUsername(req,res);
-})
 app.post('/signin', function(req, res){
     res.cookie('uname', req.body.username);
     res.redirect('/index');
 
 });
-
 app.post('/register', function(req,res){
      db.addUser(req,res);
 });
+app.get('/signin', function(req,res){
+    try
+    {
+      if(!req.cookies.uname)
+          fs.readFile('pages/signin.html', function(err,data){
+              res.status(200);
+              res.type('text/html');
+              res.send(data);
+          });
+      else
+      {
+          res.redirect('/index')
+      }
+    }
+    catch(err)
+    {
+      res.redirect('/signin');
+    }
+});
+app.get('/signout', function(req,res){
+  try
+  {
+    res.clearCookie('uname');
+    res.redirect('/signin');
+  }
+  catch(err)
+  {
+    res.redirect('/signout');
+  }
+});
+app.get('/friends', function(req,res){
+    try
+    {
+      if(!req.cookies.uname)
+          res.redirect('/signin')
+      else
+      {
+        fs.readFile('pages/friends.html', function(err,data){
+            res.status(200);
+            res.type('text/html');
+            res.send(data);
+          });
+      }
+    }
 
+    catch(err)
+    {
+      res.redirect('/friends');
+    }
+});
+app.get('/friends/add', function(req,res){
+  try
+  {
+    db.addFriend(req,res)
+  }
+  catch(err)
+  {
+    console.log('error at /friends/add');
+    res.send('error');
+  }
+});
+app.get('/friends/sentrequests', function(req,res){
+    try
+    {
+      db.seeRequests(req,res);
+    }
+    catch(err)
+    {
+      console.log('error at /friends/sentrequests');
+    }
+})
+app.get('/friends/requests', function(req,res){
+  try
+  {
+
+      db.seeFriendRequests(req,res);
+  }
+  catch(err)
+  {
+    console.log('error at /friends/requests');
+  }
+});
+app.get('/friends/acceptrequest', function(req,res){
+    try
+    {
+      db.acceptFriendRequest(req,res);
+    }
+    catch(err)
+    {
+      console.log('error at /friends/acceptrequest');
+    }
+});
+app.get('/allusers', function(req,res){
+    try
+    {
+      db.nonFriends(req,res);
+    }
+    catch(err)
+    {
+      console.log('error at /allusers');
+    }
+});
+app.get('/friends/allfriends', function(req,res){
+    try
+    {
+      db.allFriends(req,res);
+    }
+    catch(err)
+    {
+      console.log('error at /friends/allfriends');
+    }
+});
+app.get('/friends/getusername', function(req,res){
+  try
+  {
+    db.getUsername(req,res);
+  }
+  catch(err)
+  {
+    console.log('error at /friends/getusername');
+  }
+});
 
 app.get('/index', function(req,res){
     if(!req.cookies.uname)
@@ -103,12 +166,6 @@ app.get('/announcements/post', function(req,res){
 app.get('/announcements/get', function(req,res){
     db.getAnnouncement(req,res);
 });
-// app.get('/messages/fetch', function(req,res) {
-//   db.fetchMessages(req,res);
-// });
-// app.get('/messages/send', function(req,res){
-//   db.sendMessage(req,res);
-// });
 
 app.ws('/messages', function(ws, req){
   ws.on('message', function(msg){
@@ -169,7 +226,7 @@ app.get('/hub.js', function(req,res){
   fs.readFile('scripts/hub.js', function(err,data){
      res.send(data);
  });
-})
+});
 app.listen(3000);
 
 
